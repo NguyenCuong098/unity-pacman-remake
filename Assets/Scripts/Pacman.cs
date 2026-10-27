@@ -7,7 +7,12 @@ public class Pacman : MonoBehaviour
 
     private Vector2Int inputDirection;
     private Vector3Int moveDirection;
-    private Vector3Int targetPosition;
+    private Vector3 targetPosition;
+
+    private void Awake()
+    {
+        targetPosition = transform.position;
+    }
 
     private void Update()
     {
@@ -45,7 +50,7 @@ public class Pacman : MonoBehaviour
         }
         else
         {
-            targetPosition = Vector3Int.RoundToInt(transform.position + moveDirection);
+            targetPosition = transform.position + moveDirection;
         }
     }
 }
