@@ -1,17 +1,20 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.Tilemaps;
 
 public class Pacman : MonoBehaviour
 {
     [SerializeField] private float moveSpeed = 5f;
+    [SerializeField] private Tilemap wallTileMap;
 
     private Vector2Int inputDirection;
-    private Vector3Int moveDirection;
-    private Vector3 targetPosition;
+    private Vector3Int currectMoveDirection;
+    private Vector3Int nextMoveDirection;
+    private Vector3Int targetPosition;
 
     private void Awake()
     {
-        targetPosition = transform.position;
+        targetPosition = Vector3Int.RoundToInt(transform.position);
     }
 
     private void Update()
@@ -42,15 +45,41 @@ public class Pacman : MonoBehaviour
 
     private void HandleGridMovement()
     {
-        moveDirection = new Vector3Int(inputDirection.x, inputDirection.y, 0);
+        if (transform.position == targetPosition)
+        {
+            nextMoveDirection = new Vector3Int(inputDirection.x, inputDirection.y, 0);
+            Vector3 nextPosition = transform.position + nextMoveDirection;
 
-        if (transform.position != targetPosition)
-        {
-            transform.position = Vector3.MoveTowards(transform.position, targetPosition, moveSpeed * Time.deltaTime);
+            if (IsTileWalkable(nextPosition))
+            {
+                targetPosition = Vector3Int.RoundToInt(nextPosition);
+                currectMoveDirection = nextMoveDirection;
+            }
+            else
+            {
+                nextPosition = transform.position + currectMoveDirection;
+
+                if (!IsTileWalkable(nextPosition))
+                {
+                    nextPosition = Vector3Int.RoundToInt(transform.position);
+                }
+
+                targetPosition = Vector3Int.RoundToInt(nextPosition);
+            }
         }
-        else
+
+        transform.position = Vector3.MoveTowards(transform.position, targetPosition, moveSpeed * Time.deltaTime);
+    }
+
+    private bool IsTileWalkable(Vector3 tilePosition)
+    {
+        Vector3Int cellPosition = wallTileMap.WorldToCell(tilePosition);
+        TileBase tile = wallTileMap.GetTile(cellPosition);
+        if (tile == null)
         {
-            targetPosition = transform.position + moveDirection;
+            Debug.Log(tile);
+            return true;
         }
+        return false;
     }
 }
