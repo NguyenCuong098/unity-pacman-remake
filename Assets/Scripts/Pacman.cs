@@ -1,3 +1,4 @@
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.Tilemaps;
@@ -6,6 +7,7 @@ public class Pacman : MonoBehaviour
 {
     [SerializeField] private float moveSpeed = 5f;
     [SerializeField] private Tilemap wallTileMap;
+    [SerializeField] private LayerMask pelletLayer;
 
     private Vector2Int inputDirection;
     private Vector3Int currectMoveDirection;
@@ -47,6 +49,8 @@ public class Pacman : MonoBehaviour
     {
         if (transform.position == targetPosition)
         {
+            EatPellets();
+
             nextMoveDirection = new Vector3Int(inputDirection.x, inputDirection.y, 0);
             Vector3 nextPosition = transform.position + nextMoveDirection;
 
@@ -77,9 +81,34 @@ public class Pacman : MonoBehaviour
         TileBase tile = wallTileMap.GetTile(cellPosition);
         if (tile == null)
         {
-            Debug.Log(tile);
             return true;
         }
         return false;
+    }
+
+    private void EatPellets()
+    {
+        // Pacman visual is misaligned compare to the parent object to align with the map
+        Vector3 currentPosition = transform.position + new Vector3(.5f, .5f, 0);
+
+        float circleRadius = .1f;
+        Collider2D collider = Physics2D.OverlapCircle(currentPosition, circleRadius, pelletLayer);
+
+        if (collider != null)
+        {
+            if (collider.TryGetComponent<Pellet>(out Pellet pellet))
+            {
+                switch (pellet.GetPelletType())
+                {
+                    case PelletType.Normal_Pellet:
+                        Debug.Log("Normal Pellet");
+                        break;
+                    case PelletType.Power_Pellet:
+                        Debug.Log("Power Pellet");
+                        break;
+                }
+            }
+            Destroy(collider.gameObject);
+        }
     }
 }
